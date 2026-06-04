@@ -1,0 +1,92 @@
+version: 2
+
+models:
+  - name: stg_dim_vendor
+    columns:
+      - name: vendor_id
+        tests:
+          - unique
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [0,1,2]
+
+      - name: vendor_name
+        tests:
+          - not_null
+  - name: stg_dim_ratecode
+    columns:
+      - name: ratecode_id
+        tests:
+          - unique
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1,2,3,4,5,6,99]
+
+      - name: ratecode_desc
+        tests:
+          - not_null
+  - name: stg_dim_payment_type
+    columns:
+      - name: payment_type_id
+        tests:
+          - unique
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1,2,3,4,5,6,0]
+
+      - name: payment_desc
+        tests:
+          - not_null
+  - name: stg_dim_location
+    columns:
+      - name: location_id
+        tests:
+          - unique
+          - not_null
+  - name: stg_fact_trip
+    columns:
+      - name: trip_id
+        tests:
+          - unique
+          - not_null
+      - name: vendor_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_dim_vendor')
+                field: vendor_id
+      - name: ratecode_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_dim_ratecode')
+                field: ratecode_id
+
+      - name: payment_type
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_dim_payment_type')
+                field: payment_type_id
+      - name: pu_location_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_dim_location')
+                field: location_id
+      - name: do_location_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_dim_location')
+                field: location_id
+
+

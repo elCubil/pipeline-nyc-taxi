@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: fuente_principal
+    database: ny_taxi
+    schema: public
+    tables:
+      - name: dim_vendor
+      - name: dim_ratecode
+      - name: fact_trip
+      - name: dim_payment_type
+      - name: dim_location

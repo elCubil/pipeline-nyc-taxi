@@ -1,0 +1,23 @@
+name: 'nyc_taxi_dbt'
+version: '1.0.0'
+config-version: 2
+
+#este nombre debe coincidir con el que se encuentra en profiles.yml
+profile: 'nyc_taxi_dbt'
+
+#indica en carpeta buscar los modelos
+model-paths: ["models"]
+#indica en que carpeta buscar los macros
+macro-paths: ["macros"]
+#indica a nivel carpeta como materializarlas en postgres y en que schema ubicarlas
+models:
+  nyc_taxi_dbt:
+    staging:
+      +materialized: view
+      +schema: staging
+    intermediate:
+      +materialized: view
+      +schema: intermediate
+    marts:
+      +materialized: table
+      +schema: marts

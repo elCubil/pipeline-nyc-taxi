@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.idea/
+
+# Datos pesados (nunca subir a GitHub)
+data/
+*.parquet
+*.csv
+
+# Postgres
+postgres_data/
+ny_taxi_postgres_data/
+
+# DBT
+dbt/logs/
+dbt/target/
+dbt/.user.yml
+
+# Credenciales
+.env
+profiles.yml
+
+# DBT logs y cache
+dbt/logs/
+dbt/target/
+dbt/.user.yml

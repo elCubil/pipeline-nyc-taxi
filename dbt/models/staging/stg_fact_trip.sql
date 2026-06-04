@@ -1,0 +1,21 @@
+SELECT
+    trip_id,
+    vendor_id,
+    tpep_pickup_datetime,
+    tpep_dropoff_datetime,
+    passenger_count,
+    trip_distance,
+    ratecode_id,
+    store_and_fwd_flag,
+    pu_location_id,
+    do_location_id,
+    payment_type,
+    fare_amount,
+    extra,
+    mta_tax,
+    tip_amount,
+    tolls_amount,
+    improvement_surcharge,
+    congestion_surcharge,
+    airport_fee
+FROM {{ source('fuente_principal', 'fact_trip') }}
