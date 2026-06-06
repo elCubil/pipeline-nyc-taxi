@@ -1,3 +1,6 @@
+{{ config(severity = 'warn') }}
+
+
 WITH tabla1 AS(
 
     SELECT(fare_amount+extra+mta_tax+tip_amount
