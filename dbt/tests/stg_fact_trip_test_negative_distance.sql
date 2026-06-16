@@ -1,4 +1,4 @@
-{{ config(severity='warn')}}
+{{ config(severity = 'warn') }}
 
 SELECT COUNT(*)
 FROM {{ref('stg_fact_trip')}}

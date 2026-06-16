@@ -4,8 +4,10 @@ sources:
   - name: fuente_principal
     database: ny_taxi
     schema: public
+    description: tablas en 3FN que tienen como fuente la data de taxis de nyc
     tables:
       - name: dim_vendor
+        description: raw data de tabla proveedores
         columns:
           - name: vendor_id
             tests:
@@ -18,8 +20,10 @@ sources:
             tests:
               - not_null
       - name: dim_ratecode
+        description: raw data de tabla tarifas
         columns:
           - name: ratecode_id
+            description: clave primaria de tabla tarifas
             tests:
               - unique
               - not_null

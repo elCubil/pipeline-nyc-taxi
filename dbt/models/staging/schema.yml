@@ -2,8 +2,10 @@ version: 2
 
 models:
   - name: stg_dim_vendor
+    description: el grano de esta tabla es un proveedor unico por fila.
     columns:
       - name: vendor_id
+        description: clave primaria de la tabla stg_dim_vendor
         tests:
           - unique
           - not_null
@@ -15,8 +17,10 @@ models:
         tests:
           - not_null
   - name: stg_dim_ratecode
+    description: el grano de esta tabla es una tarifa unica por fila
     columns:
       - name: ratecode_id
+        description: clave primaria de la tabla stg_dim_ratecode
         tests:
           - unique
           - not_null
@@ -38,6 +42,7 @@ models:
                 values: [1,2,3,4,5,6,0]
 
       - name: payment_desc
+        description: "{{ doc('payment_typi') }}"
         tests:
           - not_null
   - name: stg_dim_location
