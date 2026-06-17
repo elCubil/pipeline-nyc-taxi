@@ -1,4 +1,4 @@
-{% docs [docs payment_typi] %}
+{% docs payment_type %}
 
 Método de pago:
 
@@ -8,5 +8,12 @@ Método de pago:
 4= disputa
 5= desconocido
 6= viaje anulado
+
+{% enddocs %}
+
+
+{% docs vendor_name %}
+La vista stg_dim_vendor solo presenta los campos
+id y descripcion del proveedor
 
 {% enddocs %}

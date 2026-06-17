@@ -42,7 +42,7 @@ models:
                 values: [1,2,3,4,5,6,0]
 
       - name: payment_desc
-        description: "{{ doc('payment_typi') }}"
+        description: "{{ doc('payment_type') }}"
         tests:
           - not_null
   - name: stg_dim_location
