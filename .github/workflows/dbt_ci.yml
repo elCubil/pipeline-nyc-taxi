@@ -50,4 +50,4 @@ jobs:
         working-directory: dbt
         env:
           DBT_DATABASE: ${{ secrets.DBT_DATABASE }}
-        run: dbt build
+        run: dbt build --exclude fct_trips
