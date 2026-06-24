@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: fuente_principal
-    database: ny_taxi
+    database: "{{ env_var('DBT_DATABASE', 'ny_taxi') }}"
     schema: public
     description: tablas en 3FN que tienen como fuente la data de taxis de nyc
     tables:
