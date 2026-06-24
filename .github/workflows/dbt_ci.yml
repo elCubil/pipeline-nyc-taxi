@@ -10,6 +10,21 @@ jobs:
   dbt-build:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: root
+          POSTGRES_DB: ny_taxi
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -19,8 +34,72 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dbt
-        run: pip install dbt-core==1.11.8 dbt-postgres==1.10.0
+      - name: Install dependencies
+        run: pip install duckdb requests pandas psycopg2-binary sqlalchemy dbt-core==1.11.8 dbt-postgres==1.10.0
+
+      - name: Load sample data
+        run: |
+          python - <<'EOF'
+          import duckdb
+          import requests
+          import os
+          import pandas as pd
+          from sqlalchemy import create_engine, text
+
+          # Catálogos
+          VENDORS = {1: "Creative Mobile Technologies", 2: "VeriFone Inc.", 0: "Unknown"}
+          RATECODES = {1: "Standard rate", 2: "JFK", 3: "Newark", 4: "Nassau or Westchester", 5: "Negotiated fare", 6: "Group ride", 99: "Unknown"}
+          PAYMENT_TYPES = {1: "Credit card", 2: "Cash", 3: "No charge", 4: "Dispute", 5: "Unknown", 6: "Voided trip", 0: "Unknown"}
+
+          engine = create_engine('postgresql://root:root@localhost:5432/ny_taxi')
+
+          # Schema
+          with engine.begin() as conn:
+              conn.execute(text(open('pipeline/create_tables.sql').read()))
+
+          # Dimensiones
+          with engine.begin() as conn:
+              for vid, vname in VENDORS.items():
+                  conn.execute(text("INSERT INTO dim_vendor VALUES (:id, :name) ON CONFLICT DO NOTHING"), {"id": vid, "name": vname})
+              for rid, rdesc in RATECODES.items():
+                  conn.execute(text("INSERT INTO dim_ratecode VALUES (:id, :desc) ON CONFLICT DO NOTHING"), {"id": rid, "desc": rdesc})
+              for pid, pdesc in PAYMENT_TYPES.items():
+                  conn.execute(text("INSERT INTO dim_payment_type VALUES (:id, :desc) ON CONFLICT DO NOTHING"), {"id": pid, "desc": pdesc})
+
+          # Zonas NYC
+          df_zones = pd.read_csv("https://d37ci6vzurychx.cloudfront.net/misc/taxi_zone_lookup.csv")
+          df_zones.columns = ["location_id", "borough", "zone", "service_zone"]
+          with engine.begin() as conn:
+              for _, row in df_zones.iterrows():
+                  conn.execute(text("INSERT INTO dim_location VALUES (:lid, :borough, :zone, :service_zone) ON CONFLICT DO NOTHING"),
+                      {"lid": row["location_id"], "borough": row["borough"], "zone": row["zone"], "service_zone": row["service_zone"]})
+
+          # 10,000 filas del parquet
+          url = "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-01.parquet"
+          print("Descargando parquet...")
+          r = requests.get(url, stream=True)
+          with open("/tmp/sample.parquet", "wb") as f:
+              f.write(r.content)
+
+          duck = duckdb.connect()
+          duck.execute("CREATE VIEW raw AS SELECT * FROM read_parquet('/tmp/sample.parquet')")
+          df = duck.execute("""
+              SELECT
+                  VendorID AS vendor_id, tpep_pickup_datetime, tpep_dropoff_datetime,
+                  passenger_count, trip_distance, RatecodeID AS ratecode_id,
+                  store_and_fwd_flag, PULocationID AS pu_location_id,
+                  DOLocationID AS do_location_id, payment_type,
+                  fare_amount, extra, mta_tax, tip_amount, tolls_amount,
+                  improvement_surcharge, congestion_surcharge, Airport_fee AS airport_fee
+              FROM raw
+              WHERE RatecodeID IN (1,2,3,4,5,6,99)
+                AND VendorID IN (0,1,2)
+                AND payment_type IN (0,1,2,3,4,5,6)
+              LIMIT 10000
+          """).df()
+          df.to_sql("fact_trip", engine, if_exists="append", index=False)
+          print(f"✓ {len(df)} filas cargadas")
+          EOF
 
       - name: Create profiles.yml
         run: |
@@ -30,12 +109,12 @@ jobs:
             outputs:
               dev:
                 type: postgres
-                host: ${{ secrets.DBT_HOST }}
-                port: ${{ secrets.DBT_PORT }}
-                user: ${{ secrets.DBT_USER }}
-                pass: ${{ secrets.DBT_PASSWORD }}
-                dbname: ${{ secrets.DBT_DATABASE }}
-                schema: ${{ secrets.DBT_SCHEMA }}
+                host: localhost
+                port: 5432
+                user: root
+                pass: root
+                dbname: ny_taxi
+                schema: public
                 threads: 4
             target: dev
           EOF
@@ -43,11 +122,11 @@ jobs:
       - name: DBT debug
         working-directory: dbt
         env:
-          DBT_DATABASE: ${{ secrets.DBT_DATABASE }}
+          DBT_DATABASE: ny_taxi
         run: dbt debug
 
       - name: DBT build
         working-directory: dbt
         env:
-          DBT_DATABASE: ${{ secrets.DBT_DATABASE }}
-        run: dbt build --exclude fct_trips
+          DBT_DATABASE: ny_taxi
+        run: dbt build
