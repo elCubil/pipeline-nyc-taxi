@@ -218,7 +218,8 @@ def ejecuta(pg_user, pg_pass, pg_host, pg_port, pg_db, year, month, chunksize):
     print(f"   Destino: {pg_host}:{pg_port}/{pg_db}\n")
 
     engine = create_engine(
-        f'postgresql://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}'
+        f'postgresql://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}',
+	connect_args={"options": "-c AddressFamily=inet"}
     )
 
     # Paso 1 — Schema 3FN

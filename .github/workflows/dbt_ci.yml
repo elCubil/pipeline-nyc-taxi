@@ -1,0 +1,49 @@
+name: DBT CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  dbt-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dbt
+        run: pip install dbt-postgres==1.10.0
+
+      - name: Create profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml << EOF
+          nyc_taxi_dbt:
+            outputs:
+              dev:
+                type: postgres
+                host: ${{ secrets.DBT_HOST }}
+                port: ${{ secrets.DBT_PORT }}
+                user: ${{ secrets.DBT_USER }}
+                pass: ${{ secrets.DBT_PASSWORD }}
+                dbname: ${{ secrets.DBT_DATABASE }}
+                schema: ${{ secrets.DBT_SCHEMA }}
+                threads: 4
+            target: dev
+          EOF
+
+      - name: DBT debug
+        working-directory: dbt
+        run: dbt debug
+
+      - name: DBT build
+        working-directory: dbt
+        run: dbt build
