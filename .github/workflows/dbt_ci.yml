@@ -42,8 +42,12 @@ jobs:
 
       - name: DBT debug
         working-directory: dbt
+        env:
+          DBT_DATABASE: ${{ secrets.DBT_DATABASE }}
         run: dbt debug
 
       - name: DBT build
         working-directory: dbt
+        env:
+          DBT_DATABASE: ${{ secrets.DBT_DATABASE }}
         run: dbt build
