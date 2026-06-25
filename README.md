@@ -1,5 +1,8 @@
 🚕 NYC Yellow Taxi Data Pipeline
 
+![DBT CI](https://github.com/elCubil/pipeline-nyc-taxi/actions/workflows/dbt_ci.yml/badge.svg)
+
+
 Pipeline de ingeniería de datos para procesar viajes de NYC Yellow Taxi utilizando Python, PostgreSQL, Docker y dbt.
 
 📌 Objetivo
