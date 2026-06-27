@@ -16,8 +16,8 @@ fare_amount,extra,mta_tax,tip_amount,tolls_amount,improvement_surcharge,congesti
             JOIN {{ref('stg_dim_payment_type')}} dp ON ft.payment_type=dp.payment_type_id
 
     WHERE
-    --(trip_distance>0)
-    --AND
+    (trip_distance>0)
+    AND
     (tpep_dropoff_datetime-tpep_pickup_datetime)>INTERVAL '0'
     AND
     (fare_amount + extra+mta_tax+tip_amount+tolls_amount+improvement_surcharge+congestion_surcharge+airport_fee)>0
